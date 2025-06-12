@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Handwritten Character Recognition</title>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #8d9de7c3 0%, #e7747a98 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 500px;
+      width: 90%;
+    }
+
+    h2 {
+      margin-bottom: 1.5rem;
+      color: #4a5568;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .canvas-container {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 1.5rem;
+    }
+
+    canvas {
+      border: 3px solid #79acf082;
+      border-radius: 12px;
+      cursor: crosshair;
+      background: #fafafa;
+      transition: border-color 0.3s ease;
+    }
+
+    canvas:hover {
+      border-color: #6279e194;
+    }
+
+    .brush-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      background: #f7fafc;
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .brush-size-label {
+      font-weight: 600;
+      color: #4a5568;
+      font-size: 0.9rem;
+    }
+
+    .brush-control-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .brush-btn {
+      background: #667eea;
+      color: white;
+      user-select: none;
+      border: none;
+      width: 50px;
+      height: 40px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+    }
+
+    .brush-btn:hover {
+      background: #5a67d8;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+    }
+
+    .brush-btn:active {
+      transform: translateY(0);
+    }
+
+    .brush-size-display {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      font-weight: 600;
+      color: #4a5568;
+      min-width: 60px;
+      font-size: 0.9rem;
+    }
+
+    .brush-preview {
+      width: 40px;
+      height: 40px;
+      background: #f7fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brush-dot {
+      background: #333;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      margin: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+      transform: scale(1.1);
+    }
+
+    button:active {
+      transform: translateY(0);
+      transform: scale(1.2);
+    }
+
+    .clear-btn {
+      background: linear-gradient(135deg, #ee6eacd4 50%, #e37eeea8 100%);
+    }
+
+    .clear-btn:hover {
+      box-shadow: 0 6px 20px rgba(237, 100, 166, 0.4);
+    }
+
+    #result {
+      background: #f7fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #4a5568;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .keyboard-hint {
+      font-size: 0.8rem;
+      color: #718096;
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 1.5rem;
+      }
+      
+      canvas {
+        width: 250px;
+        height: 250px;
+      }
+      
+      .brush-controls {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      
+      .button-group {
+        flex-direction: column;
+        margin: 10px;
+        padding: 5px;
+        align-items: center;
+      }
+      
+      button {
+        width: 100%;
+        max-width: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Please write the character below</h2>
+    
+    <div class="canvas-container">
+      <canvas id="canvas" width="300" height="300"></canvas>
+      <!-- <canvas id="canvas" width="50" height="50"></canvas> -->
+    </div>
+
+    <div class="brush-controls">
+      <span class="brush-size-label">Brush Size:</span>
+      <div class="brush-control-group">
+        <button class="brush-btn" onclick="decreaseBrushSize()" title="Decrease brush size (-)">−</button>
+        <div class="brush-size-display" id="brushSizeDisplay">8px</div>
+        <button class="brush-btn" onclick="increaseBrushSize()" title="Increase brush size (+)">+</button>
+      </div>
+      <div class="brush-preview">
+        <div class="brush-dot" id="brushPreview"></div>
+      </div>
+    </div>
+    <div class="keyboard-hint">Use + and - keys to change brush size</div>
+
+    <div class="button-group">
+      <button class="clear-btn" onclick="clearCanvas()">🗑️ Clear</button>
+      <button onclick="sendImage()">🔍 Submit for Recognition</button>
+      <button class="copy-btn" onclick="copyCharacter()" id="copyButton" style="display: none;">📋 Copy Character</button>
+    </div>
+
+    <div id="result">Draw a character and click submit to see the prediction!</div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    let brushSize = 4;
+    let lastX = 0;
+    let lastY = 0;
+    let hasDrawing = false;  // Track if canvas has any drawing
+    
+    // Add canvas history management
+    let canvasHistory = [];
+    let currentHistoryIndex = -1;
+    const MAX_HISTORY = 50;  // Limit history size to prevent memory issues
+
+    // Initialize canvas with white background
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    saveToHistory();  // Save initial state
+
+    // Drawing event listeners
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseout', stopDrawing);
+    canvas.addEventListener('mousemove', draw);
+
+    // Touch events for mobile
+    canvas.addEventListener('touchstart', handleTouch);
+    canvas.addEventListener('touchmove', handleTouch);
+    canvas.addEventListener('touchend', stopDrawing);
+
+    // Keyboard events
+    document.addEventListener('keydown', handleKeypress);
+
+    function startDrawing(e) {
+      drawing = true;
+      hasDrawing = true;
+      const rect = canvas.getBoundingClientRect();
+      lastX = e.clientX - rect.left;
+      lastY = e.clientY - rect.top;
+      draw(e); // Draw immediately on mouse down
+    }
+
+    function stopDrawing() {
+      if (drawing) {
+        drawing = false;
+        saveToHistory();  // Save to history after drawing
+      }
+    }
+
+    function draw(e) {
+      if (!drawing) return;
+      
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      // Draw line between points for smoother lines
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(x, y);
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = brushSize * 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+      
+      // Draw dots at points for better coverage
+      ctx.beginPath();
+      ctx.arc(x, y, brushSize, 0, Math.PI * 2);
+      ctx.fillStyle = 'black';
+      ctx.fill();
+      
+      lastX = x;
+      lastY = y;
+    }
+
+    function handleTouch(e) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 
+                                       e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+      });
+      canvas.dispatchEvent(mouseEvent);
+    }
+
+    function handleKeypress(e) {
+      if (e.key === '+' || e.key === '=') {
+        e.preventDefault();
+        increaseBrushSize();
+      } else if (e.key === '-' || e.key === '_' ) {
+        e.preventDefault();
+        decreaseBrushSize();
+      } else if (e.key === 'Escape' || e.key === 'Backspace') {
+        e.preventDefault();
+        clearCanvas();
+      } else if (e.ctrlKey && e.key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        sendImage();
+      } else if (e.key === 'c' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        e.preventDefault();
+        copyCharacter();
+      }
+    }
+
+    function increaseBrushSize() {
+      if (brushSize < 40) {
+        brushSize += 1;
+        updateBrushDisplay();
+      }
+    }
+
+    function decreaseBrushSize() {
+      if (brushSize > 2) {
+        brushSize -= 1;
+        updateBrushDisplay();
+      }
+    }
+
+    function updateBrushDisplay() {
+      document.getElementById('brushSizeDisplay').textContent = `${brushSize}px`;
+      const preview = document.getElementById('brushPreview');
+      preview.style.width = `${Math.min(brushSize * 1.5, 30)}px`;
+      preview.style.height = `${Math.min(brushSize * 1.5, 30)}px`;
+    }
+
+    // Add undo/redo functions
+    function saveToHistory() {
+      // Remove any future states if we're not at the end of history
+      if (currentHistoryIndex < canvasHistory.length - 1) {
+        canvasHistory = canvasHistory.slice(0, currentHistoryIndex + 1);
+      }
+      
+      // Add current state to history
+      canvasHistory.push(canvas.toDataURL('image/png'));
+      currentHistoryIndex = canvasHistory.length - 1;
+      
+      // Limit history size
+      if (canvasHistory.length > MAX_HISTORY) {
+        canvasHistory.shift();
+        currentHistoryIndex--;
+      }
+    }
+
+    function undo() {
+      if (currentHistoryIndex > 0) {
+        currentHistoryIndex--;
+        restoreFromHistory();
+      }
+    }
+
+    function redo() {
+      if (currentHistoryIndex < canvasHistory.length - 1) {
+        currentHistoryIndex++;
+        restoreFromHistory();
+      }
+    }
+
+    function restoreFromHistory() {
+      const img = new Image();
+      img.onload = function() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        hasDrawing = currentHistoryIndex > 0;  // Update hasDrawing based on history
+        document.getElementById('result').innerHTML = 'Draw a character and click submit to see the prediction!';
+      };
+      img.src = canvasHistory[currentHistoryIndex];
+    }
+
+    function clearCanvas() {
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      hasDrawing = false;
+      document.getElementById('result').innerHTML = 'Draw a character and click submit to see the prediction!';
+      document.getElementById('copyButton').style.display = 'none';  // Hide copy button
+      saveToHistory();  // Save cleared state
+    }
+
+    function saveCanvasState() {
+      // Save current canvas state to localStorage
+      try {
+        localStorage.setItem('canvasState', canvas.toDataURL('image/png'));
+      } catch (e) {
+        console.warn('Could not save canvas state:', e);
+      }
+    }
+
+    function loadCanvasState() {
+      // Load canvas state from localStorage
+      try {
+        const savedState = localStorage.getItem('canvasState');
+        if (savedState) {
+          const img = new Image();
+          img.onload = function() {
+            ctx.drawImage(img, 0, 0);
+            hasDrawing = true;
+            saveToHistory();  // Save loaded state to history
+          };
+          img.src = savedState;
+        }
+      } catch (e) {
+        console.warn('Could not load canvas state:', e);
+      }
+    }
+
+    function validateCanvas() {
+      // Check if canvas has any non-white pixels
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255) {
+          return true;  // Found non-white pixel
+        }
+      }
+      return false;  // Canvas is empty
+    }
+
+    function copyCharacter() {
+      const resultElement = document.getElementById('result');
+      const text = resultElement.textContent;
+      
+      // Extract the character from the result text
+      const match = text.match(/Predicted Character: (.)/);
+      if (match && match[1]) {
+        const character = match[1];
+        navigator.clipboard.writeText(character).then(() => {
+          // Show temporary success message
+          const originalText = resultElement.innerHTML;
+          resultElement.innerHTML = '✓ Character copied to clipboard!';
+          setTimeout(() => {
+            resultElement.innerHTML = originalText;
+          }, 1500);
+        }).catch(err => {
+          console.error('Failed to copy:', err);
+          resultElement.innerHTML = '❌ Failed to copy character';
+          setTimeout(() => {
+            resultElement.innerHTML = text;
+          }, 1500);
+        });
+      }
+    }
+
+    function sendImage() {
+      const resultElement = document.getElementById('result');
+      const copyButton = document.getElementById('copyButton');
+      
+      // Hide copy button initially
+      copyButton.style.display = 'none';
+      
+      // Validate canvas
+      if (!hasDrawing || !validateCanvas()) {
+        resultElement.innerHTML = '⚠️ Please draw a character first!';
+        return;
+      }
+
+      resultElement.innerHTML = '🔄 Analyzing your drawing...';
+      
+      // Get canvas data
+      canvas.toBlob(blob => {
+        // Verify blob
+        if (!blob) {
+          resultElement.innerHTML = '❌ Error: Could not create image data';
+          return;
+        }
+
+        // Log blob info for debugging
+        console.log('Image blob size:', blob.size, 'bytes');
+        console.log('Image blob type:', blob.type);
+
+        const formData = new FormData();
+        formData.append('file', blob, 'canvas.png');
+        
+        // Show loading state
+        resultElement.innerHTML = '🔄 Sending image to server...';
+        
+        fetch('http://127.0.0.1:8000/predict/', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Server response:', data);  // Debug log
+          resultElement.innerHTML = `
+            <div>
+              🎯 Predicted Character: ${data.class}<br>
+              <span style="font-size: 0.9rem; color: #718096;">Confidence: ${(data.confidence * 100).toFixed(2)}%</span>
+            </div>
+          `;
+          // Show copy button after successful prediction
+          copyButton.style.display = 'inline-block';
+          // Save successful prediction
+          saveToHistory();
+        })
+        .catch(error => {
+          console.error('Prediction error:', error);
+          resultElement.innerHTML = '❌ Error: Unable to predict. Please try again.';
+        });
+      }, 'image/png', 1.0);  // Use maximum quality
+    }
+
+    // Initialize
+    updateBrushDisplay();
+    loadCanvasState();  // Load any saved canvas state
+
+    // Add window unload handler to save state
+    window.addEventListener('beforeunload', saveCanvasState);
+  </script>
+</body>
+</html>

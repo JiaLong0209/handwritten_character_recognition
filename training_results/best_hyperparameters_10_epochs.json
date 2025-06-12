@@ -1,0 +1,9 @@
+{
+  "lr": 0.0001329291894316216,
+  "batch_size": 32,
+  "optimizer": "Adam",
+  "weight_decay": 0.0003967605077052988,
+  "scheduler": "ExponentialLR",
+  "gamma": 0.9364594334728974,
+  "dropout_rate": 0.4329770563201687
+}

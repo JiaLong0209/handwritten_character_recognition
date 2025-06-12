@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "113-2-ml"
+version = "0.1.0"
+description = ""
+authors = ["JiaLong0209 <smt02091395@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.12"
+uvicorn = "^0.34.3"
+torch = "^2.7.1"
+torchvision = "^0.22.1"
+efficientnet-pytorch = "^0.7.1"
+pillow = "^11.2.1"
+matplotlib = "^3.10.3"
+numpy = "^2.3.0"
+pandas = "^2.3.0"
+scikit-learn = "^1.7.0"
+optuna = "^4.3.0"
+tqdm = "^4.67.1"
+python-multipart = "^0.0.20"
+
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
